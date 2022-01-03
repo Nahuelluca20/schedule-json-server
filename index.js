@@ -1,5 +1,16 @@
 const express = require("express");
 const app = express();
+var morgan = require("morgan");
+
+morgan.token('body', function (req, res) { 
+  return [
+      JSON.stringify(req.body)
+  ] 
+})
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
+
+
 app.use(express.json());
 
 let agenda = [
@@ -63,7 +74,6 @@ const generateId = () => {
 app.post("/api/persons", (req, res) => {
   const body = req.body;
   if (!body.name || !body.number) {
-    console.log(body.number)
     return res.status(400).json({
       error: "content missing",
     });
@@ -71,13 +81,16 @@ app.post("/api/persons", (req, res) => {
   const names = agenda.map((person) => person.name);
   const numbers = agenda.map((person) => person.number);
 
-  console.log(numbers)
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
-    const number = numbers[i]
-    if (name === body.name || number === body.number) {
+    const number = numbers[i];
+    if (name === body.name) {
       return res.status(400).json({
         error: "name must be unique",
+      });
+    } else if (number === body.number) {
+      return res.status(400).json({
+        error: "number must be unique",
       });
     }
   }
